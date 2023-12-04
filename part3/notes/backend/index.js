@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+require('dotenv').config;
 const app = express();
 
 let notes = [
@@ -19,7 +21,22 @@ let notes = [
   },
 ];
 
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method);
+  console.log('Path:  ', request.path);
+  console.log('Body:  ', request.body);
+  console.log('---');
+  next();
+};
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'uknown endpoint' });
+};
+
+app.use(express.static('dist'));
+app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
 
 app.get('/', (request, response) => {
   response.send('<h1>Express server</h1>');
@@ -69,7 +86,9 @@ app.delete('/api/notes/:id', (request, response) => {
   response.sendStatus(204);
 });
 
-const PORT = 3001;
+app.use(unknownEndpoint);
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log('Server running on port', PORT);
 });

@@ -1,5 +1,8 @@
 const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 const app = express();
+const morgan = require('morgan');
 
 let persons = [
   {
@@ -24,7 +27,31 @@ let persons = [
   },
 ];
 
+const uknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'uknown endpoint' });
+};
+
+morgan.token('body', function (req, res) {
+  return JSON.stringify(req.body);
+});
+
+const customMorgan = morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'),
+    '-',
+    tokens['response-time'](req, res),
+    'ms',
+    tokens['body'](req, res),
+  ].join(' ');
+});
+
+app.use(cors());
+app.use(express.static('dist'));
 app.use(express.json());
+app.use(customMorgan);
 
 app.get('/', (request, response) => {
   response.send(
@@ -74,6 +101,22 @@ app.delete('/api/persons/:id', (request, response) => {
   persons = persons.filter((p) => p.id !== id);
   response.sendStatus(204);
 });
+
+app.put('/api/persons/:id', (request, response) => {
+  const id = +request.params.id;
+  const body = request.body;
+  const personToUpdate = persons.find((p) => p.id === id);
+
+  if (!personToUpdate) {
+    return response.sendStatus(404);
+  }
+
+  const updatedPerson = { ...personToUpdate, number: body.number };
+  persons = persons.map((p) => (p.id === id ? updatedPerson : p));
+  response.json(updatedPerson);
+});
+
+app.use(uknownEndpoint);
 
 const PORT = 3001;
 app.listen(PORT, () => {
