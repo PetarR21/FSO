@@ -6,7 +6,7 @@ notesRouter.get('/', async (request, response) => {
   response.json(notes);
 });
 
-notesRouter.post('', async (request, response, next) => {
+notesRouter.post('', async (request, response) => {
   const body = request.body;
 
   if (!body.content) {
@@ -20,58 +20,42 @@ notesRouter.post('', async (request, response, next) => {
     important: body.important || false,
   });
 
-  try {
-    const savedNote = await note.save();
-    response.json(savedNote);
-  } catch (error) {
-    next(error);
-  }
+  const savedNote = await note.save();
+  response.status(201).json(savedNote);
 });
 
-notesRouter.get('/:id', async (request, response, next) => {
-  try {
-    const note = await Note.findById(request.params.id);
-    if (!note) {
-      response.sendStatus(404);
-    }
-    response.json(note);
-  } catch (error) {
-    next(error);
+notesRouter.get('/:id', async (request, response) => {
+  const note = await Note.findById(request.params.id);
+  if (!note) {
+    response.sendStatus(404);
   }
+  response.json(note);
 });
 
-notesRouter.delete('/:id', async (request, response, next) => {
-  try {
-    const note = await Note.findByIdAndDelete(request.params.id);
+notesRouter.delete('/:id', async (request, response) => {
+  const note = await Note.findByIdAndDelete(request.params.id);
 
-    if (!note) {
-      return response.sendStatus(404);
-    }
-
-    response.sendStatus(204);
-  } catch (error) {
-    next(error);
+  if (!note) {
+    return response.sendStatus(404);
   }
+
+  response.sendStatus(204);
 });
 
-notesRouter.put('/:id', async (request, response, next) => {
-  try {
-    const body = request.body;
+notesRouter.put('/:id', async (request, response) => {
+  const body = request.body;
 
-    const updatedNote = await Note.findByIdAndUpdate(
-      request.params.id,
-      { important: body.important },
-      { new: true, runValidators: true, context: 'query' }
-    );
+  const updatedNote = await Note.findByIdAndUpdate(
+    request.params.id,
+    { important: body.important },
+    { new: true, runValidators: true, context: 'query' }
+  );
 
-    if (!updatedNote) {
-      return response.sendStatus(404);
-    }
-
-    response.json(updatedNote);
-  } catch (error) {
-    next(error);
+  if (!updatedNote) {
+    return response.sendStatus(404);
   }
+
+  response.json(updatedNote);
 });
 
 module.exports = notesRouter;
