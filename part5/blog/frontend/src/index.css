@@ -1,0 +1,16 @@
+.notification {
+  background-color: lightslategray;
+  color: white;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 3px 0 0 3px;
+  margin: 10px 0;
+}
+
+.error {
+  background-color: #f44336;
+}
+
+.success {
+  background-color: #4caf50;
+}
