@@ -24,7 +24,7 @@ router.post('/', middleware.userExtractor, async (request, response) => {
   const savedBlog = await blog.save();
   user.blogs = user.blogs.concat(savedBlog);
   await user.save();
-  response.status(201).json(savedBlog);
+  response.status(201).json(await savedBlog.populate('user', { username: 1, name: 1 }));
 });
 
 router.get('/:id', async (request, response) => {
@@ -59,7 +59,7 @@ router.put('/:id', async (request, response) => {
     context: 'query',
   });
   if (blog) {
-    response.json(blog);
+    response.json(await blog.populate('user', { username: 1, name: 1 }));
   } else {
     response.sendStatus(404);
   }
